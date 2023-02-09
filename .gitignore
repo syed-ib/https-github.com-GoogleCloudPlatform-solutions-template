@@ -27,6 +27,10 @@ ui-debug.log
 .terraform
 .terraform.lock.hcl
 
+# Angular artifacts
+.angular
+node_modules
+
 # test artifacts
 .e2e_test_output
 .test_output

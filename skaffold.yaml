@@ -2,7 +2,7 @@
 apiVersion: skaffold/v4beta1
 kind: Config
 metadata:
-  name: backends
+  name: all-services
 requires:
 - configs:
   - common
@@ -10,3 +10,6 @@ requires:
 - configs:
   - sample-service
   path: ./microservices/sample_service
+- configs:
+  - frontend-angular
+  path: ./microservices/frontend_angular

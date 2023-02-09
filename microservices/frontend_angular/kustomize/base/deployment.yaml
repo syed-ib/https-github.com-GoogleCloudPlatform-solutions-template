@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-angular
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-angular
+  template:
+    metadata:
+      labels:
+        app: frontend-angular
+    spec:
+      containers:
+      - name: frontend-angular
+        image: frontend-angular
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "100Mi"
+          limits:
+            memory: "5000Mi"
+            cpu: "2000m"
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10

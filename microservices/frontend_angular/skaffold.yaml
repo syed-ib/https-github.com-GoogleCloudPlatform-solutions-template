@@ -1,0 +1,28 @@
+apiVersion: skaffold/v4beta1
+kind: Config
+metadata:
+  name: frontend-angular
+manifests:
+  kustomize:
+    paths:
+    - ./kustomize/base
+
+deploy:
+  kubectl: {}
+
+build:
+  local:
+    useBuildkit: true
+  artifacts:
+  - image: frontend-angular
+    docker:
+      cacheFrom:
+      - frontend-angular
+      - frontend-angular:latest
+    sync:
+      infer:
+      - '**/*.py'
+      - '**/*.json'
+      - '**/*.js'
+      - '**/*.ts'
+      - '**/*.sh'
