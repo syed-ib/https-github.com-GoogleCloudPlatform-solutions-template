@@ -17,7 +17,6 @@
 
 # Terraform Block
 terraform {
-  required_version = ">= 0.13"
   required_providers {
     kubectl = {
       source  = "gavinbunney/kubectl"
@@ -25,7 +24,7 @@ terraform {
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 2.5.1"
+      version = ">= 2.7.0"
     }
   }
 }
@@ -51,7 +50,7 @@ resource "google_compute_address" "ingress_ip_address" {
 
 module "nginx-controller" {
   source    = "terraform-iaac/nginx-controller/helm"
-  version   = "2.0.2"
+  version   = "2.1.0"
   namespace = "ingress-nginx"
 
   ip_address = google_compute_address.ingress_ip_address.address
@@ -82,6 +81,7 @@ resource "kubernetes_ingress_v1" "default_ingress" {
 
   spec {
     rule {
+      host = var.api_domain
       http {
         # Sample Service
         path {
@@ -102,7 +102,6 @@ resource "kubernetes_ingress_v1" "default_ingress" {
     tls {
       hosts = [
         var.api_domain,
-        google_compute_address.ingress_ip_address.address,
       ]
       secret_name = "cert-manager-private-key"
     }

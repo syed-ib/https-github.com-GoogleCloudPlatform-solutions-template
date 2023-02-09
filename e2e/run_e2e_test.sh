@@ -38,10 +38,11 @@ declare -a EnvVars=(
   "BILLING_ACCOUNT"
   "GOOGLE_APPLICATION_CREDENTIALS"
 )
-for variable in ${EnvVars[@]}; do
+
+for variable in "${EnvVars[@]}"; do
   if [[ -z "${!variable}" ]]; then
-    printf "$variable is not set.\n"
-    exit -1
+    printf "%s is not set.\n" "$variable"
+    exit 1
   fi
 done
 
@@ -58,6 +59,7 @@ while getopts "n" flag
 do
   case "${flag}" in
     n) nocleanup="nocleanup";;
+    *)
   esac
 done
 
@@ -69,12 +71,12 @@ export OUTPUT_FOLDER=".test_output"
 export PROJECT_ID=solutemp-e2e-$(uuidgen | head -c 8 | awk '{print tolower($0)}')
 export ADMIN_EMAIL=$(gcloud auth list --filter=status:ACTIVE --format='value(account)')
 pip3 install pytest --no-input
-echo "PROJECT_ID=$PROJECT_ID"
+echo "PROJECT_ID=${PROJECT_ID}"
 
 ### Create a new Google Cloud project:
 create_new_project() {
-  gcloud projects create $PROJECT_ID --folder $FOLDER_ID --quiet
-  gcloud config set project $PROJECT_ID --quiet
+  gcloud projects create "${PROJECT_ID}" --folder "$FOLDER_ID" --quiet
+  gcloud config set project "${PROJECT_ID}" --quiet
 }
 
 install_dependencies() {
@@ -82,14 +84,14 @@ install_dependencies() {
   python3 -m pip install cookiecutter
   
   ### Create skeleton code in a new folder with Cookiecutter
-  cookiecutter . --no-input -o $OUTPUT_FOLDER project_id=$PROJECT_ID admin_email=$ADMIN_EMAIL
+  cookiecutter . --no-input -o $OUTPUT_FOLDER project_id="${PROJECT_ID}" admin_email="$ADMIN_EMAIL"
 }
 
 setup_working_folder() {
   mkdir -p $OUTPUT_FOLDER
   
   ### Set up working environment:
-  cd $OUTPUT_FOLDER/$PROJECT_ID
+  cd "$OUTPUT_FOLDER/${PROJECT_ID}"
   export API_DOMAIN=localhost
   export BASE_DIR=$(pwd)
   echo "Current directory: ${BASE_DIR}"
@@ -99,7 +101,7 @@ setup_working_folder() {
 # Test with API endpoint (GKE):
 test_api_endpoints_gke() {
   # Run API e2e tests
-  cd $BASE_DIR
+  cd "${BASE_DIR}"
   python3 e2e/utils/port_forward.py --namespace default
   PYTHONPATH=common/src python3 -m pytest e2e/gke_api_tests/
   GKE_PYTEST_STATUS=${PIPESTATUS[0]}
@@ -107,7 +109,7 @@ test_api_endpoints_gke() {
 
 # Test with API endpoint (CloudRun):
 test_api_endpoints_cloudrun() {
-  cd $BASE_DIR
+  cd "${BASE_DIR}"
   
   # Run API e2e tests
   mkdir -p .test_output
@@ -119,10 +121,9 @@ test_api_endpoints_cloudrun() {
 
 clean_up() {
   # Deleting project.
-  echo "PROJECT_ID=${PROJECT_ID}"
-  echo "Clearning up project: ${PROJECT_ID}"
-  gcloud projects delete $PROJECT_ID --quiet
-  # rm -rf $OUTPUT_FOLDER/$PROJECT_ID
+  echo "Cleaning up project: PROJECT_ID=${PROJECT_ID}"
+  gcloud projects delete "${PROJECT_ID}" --quiet
+  # rm -rf $OUTPUT_FOLDER/${PROJECT_ID}
 }
 
 # Run all steps
@@ -138,7 +139,7 @@ test_api_endpoints_gcloud
 
 # Cleaning up e2e test project.
 if [[ "$nocleanup" ==  "" ]]; then
-  printf "Cleaning up ${PROJECT_ID}...\n"
+  printf "Cleaning up %s...\n" "${PROJECT_ID}"
   clean_up
 else
   echo "Skip project cleaning up..."
@@ -155,5 +156,5 @@ else
   echo -e '\033[31m ERROR: API Tests failed \033[0m'
   echo "GKE_PYTEST_STATUS=$GKE_PYTEST_STATUS"
   echo "CLOUDRUN_PYTEST_STATUS=$CLOUDRUN_PYTEST_STATUS"
-  exit -1
+  exit 1
 fi
